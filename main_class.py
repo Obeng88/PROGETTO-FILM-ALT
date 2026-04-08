@@ -14,7 +14,7 @@ app=FastAPI()
 '''Configurazione CORS per permettere al frontend di comunicare con il backend'''
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["127.0.0.1:7001"],  # in produzione metti il tuo dominio
+    allow_origins=["*"],  # in produzione metti il tuo dominio
     allow_methods=["*"],
     allow_headers=["*"],
 )
