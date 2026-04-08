@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Aurora Boreale | Cinema Noir</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #0b0707; --surface: #1a1212; --surface2: #2d1b1b; --border: #4a0e0e;
+      --aurora: #c0392b; --accent: #e74c3c; --text: #f5f5f5; --text-dim: #a5a5a5;
+      --gold: #d4af37; --vip: #d4af37; --std: #c0392b; --eco: #5c1616;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; line-height: 1.6; overflow-x: hidden; }
+
+    /* HEADER */
+    header { position: sticky; top: 0; z-index: 100; background: rgba(11, 7, 7, 0.97); backdrop-filter: blur(15px); border-bottom: 2px solid var(--aurora); padding: 0 3rem; display: flex; align-items: center; justify-content: space-between; height: 80px; gap: 1rem; }
+    .logo { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 900; color: var(--aurora); text-transform: uppercase; letter-spacing: 2px; white-space: nowrap; }
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .btn-nav { background: none; border: 1px solid var(--border); color: var(--text-dim); padding: 8px 14px; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 0.75rem; border-radius: 4px; transition: 0.2s; white-space: nowrap; }
+    .btn-nav:hover { border-color: var(--aurora); color: var(--aurora); }
+    .btn-nav.active { border-color: var(--gold); color: var(--gold); }
+    .btn-cart { background: none; border: 1px solid var(--aurora); color: white; padding: 8px 15px; cursor: pointer; font-family: 'DM Mono', monospace; border-radius: 4px; transition: 0.2s; }
+    .btn-cart:hover { background: var(--aurora); }
+
+    /* FILTERS */
+    .filters-bar { padding: 1rem 3rem; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; border-bottom: 1px solid var(--border); background: rgba(26,18,18,0.7); }
+    .filter-btn { background: transparent; border: 1px solid var(--border); color: var(--text-dim); padding: 6px 14px; font-size: 0.7rem; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; border-radius: 20px; font-family: 'DM Mono', monospace; transition: 0.2s; }
+    .filter-btn:hover, .filter-btn.active { background: var(--aurora); border-color: var(--aurora); color: white; }
+    .filter-label { font-size: 0.65rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; margin-right: 5px; }
+    .search-input { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 6px 12px; font-size: 0.75rem; border-radius: 20px; font-family: 'DM Mono', monospace; outline: none; width: 180px; transition: 0.2s; }
+    .search-input:focus { border-color: var(--gold); }
+    .rating-filter { display: flex; align-items: center; gap: 6px; }
+    .rating-filter select { background: var(--surface); border: 1px solid var(--border); color: var(--text-dim); padding: 6px 10px; font-size: 0.7rem; font-family: 'DM Mono', monospace; border-radius: 20px; cursor: pointer; outline: none; }
+
+    /* SECTION TITLE */
+    .section-title { padding: 0 1rem; margin: 40px 0 20px 3rem; color: var(--gold); font-size: 0.9rem; letter-spacing: 4px; text-transform: uppercase; border-left: 3px solid var(--gold); }
+
+    /* CATALOG */
+    .catalog { padding: 2rem 3rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 30px; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; transition: 0.4s; display: flex; flex-direction: column; cursor: pointer; }
+    .card:hover { transform: translateY(-10px); border-color: var(--gold); box-shadow: 0 15px 40px rgba(0,0,0,0.8); }
+    .card-img-container { position: relative; width: 100%; height: 200px; overflow: hidden; }
+    .card img { width: 100%; height: 100%; object-fit: cover; transition: 0.4s; }
+    .card:hover img { transform: scale(1.05); }
+    .rating-badge { position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.85); padding: 4px 10px; border-radius: 4px; color: var(--gold); font-size: 0.8rem; font-weight: bold; border: 1px solid var(--gold); }
+    .genre-badge { position: absolute; top: 10px; left: 10px; background: rgba(192,57,43,0.9); padding: 3px 8px; border-radius: 4px; color: white; font-size: 0.65rem; letter-spacing: 1px; text-transform: uppercase; }
+    .card-content { padding: 1.2rem; flex-grow: 1; display: flex; flex-direction: column; }
+    .card-content h3 { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 1.2rem; margin-bottom: 4px; }
+    .stars { color: var(--gold); margin-bottom: 8px; font-size: 0.9rem; }
+    .plot { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 12px; height: 3.2rem; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
+    .card-meta { font-size: 0.65rem; color: var(--text-dim); margin-bottom: 10px; }
+    .btn-time { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 7px 10px; font-size: 0.72rem; cursor: pointer; border-radius: 4px; flex: 1; font-family: 'DM Mono', monospace; transition: 0.2s; }
+    .btn-time:hover { background: var(--aurora); border-color: var(--aurora); }
+    .btn-detail { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 7px; font-size: 0.65rem; cursor: pointer; border-radius: 4px; font-family: 'DM Mono', monospace; letter-spacing: 1px; text-transform: uppercase; transition: 0.2s; margin-top: 8px; width: 100%; }
+    .btn-detail:hover { background: var(--gold); color: black; }
+
+    /* FILM DETAIL MODAL */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 200; display: none; align-items: flex-start; justify-content: center; overflow-y: auto; padding: 30px 15px; }
+    .modal-backdrop.open { display: flex; }
+    .modal-content { background: var(--surface); width: 90%; max-width: 750px; border-radius: 14px; border: 1px solid var(--border); overflow: hidden; margin: auto; }
+    .film-detail-hero { position: relative; width: 100%; height: 280px; overflow: hidden; }
+    .film-detail-hero img { width: 100%; height: 100%; object-fit: cover; }
+    .film-detail-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, var(--surface) 100%); }
+    .film-detail-body { padding: 25px 30px; }
+    .film-detail-title { font-family: 'Playfair Display', serif; color: var(--gold); font-size: 1.8rem; margin-bottom: 5px; }
+    .film-detail-meta { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 12px; display: flex; gap: 15px; flex-wrap: wrap; }
+    .film-detail-meta span { display: flex; align-items: center; gap: 4px; }
+    .film-detail-desc { font-size: 0.78rem; color: var(--text-dim); line-height: 1.8; margin-bottom: 20px; }
+    .film-detail-shows { margin-top: 20px; }
+    .shows-title { color: var(--gold); font-size: 0.75rem; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 12px; border-left: 3px solid var(--gold); padding-left: 10px; }
+    .show-row { display: flex; align-items: center; justify-content: space-between; background: var(--surface2); padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); }
+    .show-info { font-size: 0.75rem; }
+    .show-info .show-time { color: var(--gold); font-size: 0.9rem; font-weight: bold; }
+    .show-info .show-sala { color: var(--text-dim); font-size: 0.65rem; }
+
+    /* BOOKING MODAL */
+    #bookingModal .modal-content { max-width: 650px; padding: 30px; }
+    .screen { width: 80%; height: 8px; background: linear-gradient(to right, transparent, #fff, transparent); margin: 0 auto 25px; border-radius: 50% 50% 0 0; box-shadow: 0 5px 20px rgba(255,255,255,0.2); }
+    .screen-label { text-align: center; font-size: 0.6rem; color: var(--text-dim); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 20px; }
+    .seats-grid { display: grid; gap: 6px; background: #000; padding: 20px; border-radius: 10px; }
+    .seat-row { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+    .row-label { font-size: 0.6rem; color: var(--text-dim); width: 16px; text-align: center; flex-shrink: 0; }
+    .seats-in-row { display: flex; gap: 6px; flex-wrap: nowrap; }
+    .seat { width: 28px; height: 24px; border-radius: 5px 5px 2px 2px; cursor: pointer; border-bottom: 3px solid rgba(0,0,0,0.3); transition: 0.15s; position: relative; flex-shrink: 0; }
+    .seat:hover:not(.occupied) { transform: scale(1.15); filter: brightness(1.3); }
+    .seat.selected { background: #fff !important; transform: scale(1.15); box-shadow: 0 0 12px #fff; }
+    .seat.occupied { background: #1a1a1a !important; cursor: not-allowed; opacity: 0.35; border-bottom-color: #111; }
+    .seat-number-label { font-size: 0.45rem; color: rgba(0,0,0,0.6); text-align: center; line-height: 24px; pointer-events: none; }
+    .seats-legend { display: flex; gap: 15px; justify-content: center; margin-bottom: 12px; font-size: 0.68rem; flex-wrap: wrap; }
+    .seats-legend div { display: flex; align-items: center; gap: 5px; }
+    .legend-box { width: 14px; height: 14px; border-radius: 3px; }
+    .selected-seats-info { background: rgba(0,0,0,0.4); padding: 14px; border-radius: 8px; margin-top: 15px; }
+    .selected-seats-list { max-height: 80px; overflow-y: auto; margin-bottom: 8px; }
+    .selected-seat-chip { display: inline-block; background: var(--surface2); border: 1px solid var(--aurora); border-radius: 4px; padding: 2px 8px; font-size: 0.7rem; margin: 2px; color: var(--gold); }
+
+    /* CART SIDEBAR */
+    .cart-sidebar { position: fixed; right: -450px; top: 0; width: 420px; height: 100%; background: var(--surface); border-left: 2px solid var(--aurora); z-index: 300; transition: 0.4s; padding: 30px; display: flex; flex-direction: column; overflow-y: auto; }
+    .cart-sidebar.open { right: 0; }
+    .timer-box { background: rgba(231, 76, 60, 0.1); color: var(--accent); padding: 10px; border-radius: 4px; text-align: center; font-weight: bold; margin-bottom: 15px; border: 1px solid var(--accent); display: none; font-size: 0.8rem; }
+    .btn-action { background: var(--aurora); color: white; border: none; padding: 13px; width: 100%; font-weight: bold; cursor: pointer; border-radius: 4px; margin-top: 10px; text-transform: uppercase; transition: 0.3s; font-family: 'DM Mono', monospace; font-size: 0.8rem; letter-spacing: 1px; }
+    .btn-action:hover { opacity: 0.85; transform: scale(1.01); }
+    .btn-reserve { background: transparent; border: 1px solid var(--gold); color: var(--gold); }
+    .form-input { width: 100%; padding: 11px 12px; background: #000; border: 1px solid var(--border); color: white; border-radius: 4px; font-family: 'DM Mono', monospace; font-size: 0.78rem; outline: none; transition: 0.2s; margin-bottom: 8px; }
+    .form-input:focus { border-color: var(--aurora); }
+
+    /* TICKET */
+    #mainApp { display: block; }
+    #ticketResult { display: none; padding: 60px 20px; text-align: center; min-height: 100vh; background: var(--bg); }
+    .ticket-paper { background: white; color: black; padding: 40px; max-width: 480px; margin: auto; border-radius: 8px; box-shadow: 0 0 40px rgba(212, 175, 55, 0.25); }
+
+    /* AUTH MODAL */
+    #authModal .modal-content { max-width: 440px; padding: 35px; }
+    .auth-tabs { display: flex; margin-bottom: 25px; border-bottom: 1px solid var(--border); }
+    .auth-tab { flex: 1; padding: 10px; text-align: center; cursor: pointer; font-size: 0.75rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); border-bottom: 2px solid transparent; transition: 0.2s; background: none; border-top: none; border-left: none; border-right: none; font-family: 'DM Mono', monospace; }
+    .auth-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+    .auth-form { display: none; }
+    .auth-form.active { display: block; }
+    .auth-form label { font-size: 0.65rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; display: block; margin-bottom: 5px; margin-top: 14px; }
+    .user-pill { background: var(--surface2); border: 1px solid var(--gold); border-radius: 20px; padding: 5px 14px; font-size: 0.72rem; color: var(--gold); }
+    .checkout-mode-selector { display: flex; gap: 8px; margin-bottom: 15px; }
+    .mode-btn { flex: 1; padding: 9px; background: transparent; border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 0.7rem; transition: 0.2s; text-align: center; }
+    .mode-btn.active { border-color: var(--aurora); color: var(--aurora); background: rgba(192,57,43,0.1); }
+    .empty-catalog { text-align: center; color: var(--text-dim); padding: 5rem; grid-column: 1 / -1; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+<div id="mainApp">
+  <header>
+    <div class="logo">Aurora Boreale</div>
+    <div class="nav-right">
+      <div id="userIndicator"></div>
+      <button class="btn-nav" id="btnAuth" onclick="openAuth()">ACCEDI</button>
+      <button class="btn-cart" onclick="toggleCart(true)">IL TUO ORDINE (<span id="cartCount">0</span>)</button>
+    </div>
+  </header>
+
+  <!-- FILTERS -->
+  <div class="filters-bar" id="filtersBar">
+    <span class="filter-label">Genere:</span>
+    <button class="filter-btn active" data-genre="all" onclick="filterByGenre('all', this)">Tutti</button>
+    <!-- generi caricati dinamicamente -->
+    <span class="filter-label" style="margin-left:10px;">Cerca:</span>
+    <input type="text" class="search-input" id="searchInput" placeholder="Titolo, regista..." oninput="applyFilters()">
+    <span class="filter-label" style="margin-left:10px;">Rating:</span>
+    <div class="rating-filter">
+      <select id="ratingFilter" onchange="applyFilters()">
+        <option value="0">Tutti</option>
+        <option value="6">6+ ★</option>
+        <option value="7">7+ ★</option>
+        <option value="8">8+ ★</option>
+        <option value="9">9+ ★</option>
+      </select>
+    </div>
+  </div>
+
+  <h2 class="section-title">Programmazione 2026</h2>
+  <main class="catalog" id="catalog"></main>
+</div>
+
+<!-- TICKET RESULT -->
+<div id="ticketResult">
+  <div class="ticket-paper">
+    <h2 style="font-family: serif; letter-spacing: 2px; margin-bottom:5px;">AURORA BOREALE</h2>
+    <p id="ticketStatus" style="font-size: 0.7rem; font-weight: bold; text-transform: uppercase; margin-bottom: 10px;"></p>
+    <hr>
+    <div id="ticketInfo" style="text-align: left; margin: 20px 0; font-size: 0.83rem; line-height: 1.8;"></div>
+    <div id="qrContainer"></div>
+    <p style="font-size: 0.7rem; color: #666; margin-top: 10px;">Presenta questo codice all'ingresso della sala</p>
+    <button class="btn-action" onclick="window.print()" style="background:#000; color:white; margin-top:20px;">STAMPA BIGLIETTO</button>
+    <button onclick="location.reload()" style="margin-top:15px; background:none; border:none; text-decoration:underline; cursor:pointer; font-size:0.8rem;">Torna alla Home</button>
+  </div>
+</div>
+
+<!-- FILM DETAIL MODAL -->
+<div id="filmDetailModal" class="modal-backdrop">
+  <div class="modal-content">
+    <div class="film-detail-hero">
+      <img id="detailImg" src="" alt="">
+    </div>
+    <div class="film-detail-body">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <div>
+          <div class="film-detail-title" id="detailTitle"></div>
+          <div class="stars" id="detailStars" style="font-size:1.1rem;"></div>
+        </div>
+        <div id="detailRatingBadge" style="background:rgba(0,0,0,0.6); border:1px solid var(--gold); padding:6px 14px; border-radius:6px; color:var(--gold); font-size:1.1rem; font-weight:bold;"></div>
+      </div>
+      <div class="film-detail-meta" id="detailMeta"></div>
+      <div class="film-detail-desc" id="detailDesc"></div>
+      <div class="film-detail-shows">
+        <div class="shows-title">Spettacoli Disponibili</div>
+        <div id="detailShows"></div>
+      </div>
+      <button onclick="closeFilmDetail()" style="margin-top:20px; background:none; border:1px solid var(--text-dim); color:var(--text-dim); padding:10px 20px; cursor:pointer; border-radius:4px; font-family:'DM Mono',monospace; font-size:0.72rem; width:100%;">← TORNA AI FILM</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING MODAL -->
+<div id="bookingModal" class="modal-backdrop">
+  <div class="modal-content">
+    <h2 id="mTitle" style="color:var(--gold); font-family: 'Playfair Display'; margin-bottom:4px;"></h2>
+    <p id="mSala" style="font-size: 0.75rem; color: var(--aurora); margin-bottom: 18px;"></p>
+
+    <div class="seats-legend">
+      <div><div class="legend-box" style="background:var(--vip);"></div> VIP (€15)</div>
+      <div><div class="legend-box" style="background:var(--std);"></div> Standard (€10)</div>
+      <div><div class="legend-box" style="background:var(--eco);"></div> Eco (€7.50)</div>
+      <div><div class="legend-box" style="background:#fff;"></div> Selezionato</div>
+      <div><div class="legend-box" style="background:#1a1a1a; opacity:0.5;"></div> Occupato</div>
+    </div>
+
+    <div class="screen"></div>
+    <div class="screen-label">SCHERMO</div>
+    <div id="seatsGrid"></div>
+
+    <div class="selected-seats-info">
+      <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+        <span style="font-size:0.72rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:1px;">Posti selezionati:</span>
+        <span id="sCount" style="color:var(--gold); font-weight:bold;">0</span>
+      </div>
+      <div class="selected-seats-list" id="selectedSeatsList"><p style="font-size:0.7rem; color:var(--text-dim);">Clicca sui posti per selezionarli</p></div>
+      <div style="display:flex; justify-content:space-between; margin-top:8px;">
+        <span style="font-size:0.75rem;">TOTALE PARZIALE:</span>
+        <span id="sPrice" style="color:var(--gold); font-weight:bold; font-size:0.9rem;">€ 0.00</span>
+      </div>
+    </div>
+
+    <button class="btn-action" onclick="addToCart()">AGGIUNGI AL CARRELLO</button>
+    <button class="btn-action" onclick="closeBookingModal()" style="background: transparent; border: 1px solid var(--text-dim); color:var(--text-dim); margin-top: 8px;">CHIUDI</button>
+  </div>
+</div>
+
+<!-- AUTH MODAL -->
+<div id="authModal" class="modal-backdrop">
+  <div class="modal-content">
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">ACCEDI</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">REGISTRATI</button>
+    </div>
+
+    <div class="auth-form active" id="loginForm">
+      <label>Username</label>
+      <input class="form-input" type="text" id="loginUsername" placeholder="Il tuo username">
+      <label>Password</label>
+      <input class="form-input" type="password" id="loginPassword" placeholder="••••••••">
+      <p id="loginError" style="color:var(--accent); font-size:0.7rem; margin-top:8px; display:none;"></p>
+      <button class="btn-action" onclick="doLogin()">ENTRA</button>
+    </div>
+
+    <div class="auth-form" id="registerForm">
+      <label>Username</label>
+      <input class="form-input" type="text" id="regUsername" placeholder="Scegli un username">
+      <label>Password</label>
+      <input class="form-input" type="password" id="regPassword" placeholder="Min. 6 caratteri">
+      <p id="regError" style="color:var(--accent); font-size:0.7rem; margin-top:8px; display:none;"></p>
+      <p id="regSuccess" style="color:#27ae60; font-size:0.7rem; margin-top:8px; display:none;"></p>
+      <button class="btn-action" onclick="doRegister()">CREA ACCOUNT</button>
+    </div>
+
+    <button onclick="closeAuth()" style="margin-top:15px; background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:0.7rem; width:100%; text-align:center;">Continua come ospite →</button>
+  </div>
+</div>
+
+<!-- CART SIDEBAR -->
+<div id="cartSidebar" class="cart-sidebar">
+  <h2 style="color:var(--gold); margin-bottom:10px; font-family:'Playfair Display',serif;">Il Tuo Ordine</h2>
+  <div id="cartTimer" class="timer-box">Scadenza tra: <span id="timeVal">05:00</span></div>
+  <div id="cartList" style="flex-grow:1; overflow-y:auto;"></div>
+
+  <div style="border-top:1px solid var(--border); padding-top:20px; margin-top:10px;">
+    <button onclick="toggleCart(false)" style="width:100%; background:none; border:1px solid var(--text-dim); color:var(--text-dim); padding:10px; margin-bottom:15px; cursor:pointer; font-size:0.7rem; text-transform:uppercase; letter-spacing:1px; border-radius:4px; font-family:'DM Mono',monospace;">← Continua gli acquisti</button>
+
+    <p style="font-size:1.2rem; margin-bottom:15px;">TOTALE: <span id="cartTotal" style="color:var(--gold)">0.00</span> €</p>
+
+    <div id="checkoutSection">
+      <!-- se non loggato mostra selezione modalità -->
+      <div id="guestModeSection">
+        <div class="checkout-mode-selector" id="checkoutModeSelector">
+          <div class="mode-btn active" id="modeGuest" onclick="setCheckoutMode('guest')">🎭 Ospite</div>
+          <div class="mode-btn" id="modeUser" onclick="setCheckoutMode('user')">👤 Accedi</div>
+        </div>
+        <div id="guestEmailSection">
+          <input type="email" class="form-input" id="userEmail" placeholder="Inserisci la tua email...">
+        </div>
+        <div id="cartLoginSection" style="display:none;">
+          <input type="text" class="form-input" id="cartLoginUser" placeholder="Username">
+          <input type="password" class="form-input" id="cartLoginPass" placeholder="Password">
+          <p id="cartLoginError" style="color:var(--accent); font-size:0.7rem; display:none; margin-bottom:6px;"></p>
+          <button class="btn-action" onclick="doCartLogin()" style="margin-top:0;">ACCEDI</button>
+        </div>
+      </div>
+      <div id="loggedCheckoutSection" style="display:none;">
+        <p style="font-size:0.75rem; color:var(--text-dim); margin-bottom:10px;">Stai prenotando come: <span id="loggedUserLabel" style="color:var(--gold);"></span></p>
+      </div>
+    </div>
+
+    <button class="btn-action" id="btnPay" onclick="finishCheckout('PAGATO')">PAGA ORA (€)</button>
+    <button class="btn-action btn-reserve" onclick="finishCheckout('PRENOTATO')">SOLO PRENOTAZIONE</button>
+  </div>
+</div>
+
+<script>
+  const API = "http://127.0.0.1:7001";
+  let cart = [];
+  let tempSeats = []; // posti selezionati nel modale corrente
+  let tempBooking = null;
+  let timerInt;
+  let spettacoli = {};
+  let allFilms = {};
+  let currentGenreFilter = 'all';
+  let currentUser = null; // { username, id } se loggato
+  let checkoutMode = 'guest'; // 'guest' | 'logged'
+
+  // ─── STARS ───────────────────────────────────────────
+  function starsHTML(rating, scale10 = true) {
+    if (rating == null) return '';
+    const stars = scale10 ? rating / 2 : rating;
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+      if (stars >= i) html += '<span style="color:var(--gold)">★</span>';
+      else if (stars >= i - 0.5) html += '<span style="color:var(--gold)">⯨</span>';
+      else html += '<span style="color:#333">★</span>';
+    }
+    return html;
+  }
+
+  // ─── AUTH ─────────────────────────────────────────────
+  function openAuth() {
+    document.getElementById('authModal').classList.add('open');
+  }
+  function closeAuth() {
+    document.getElementById('authModal').classList.remove('open');
+  }
+  function switchAuthTab(tab) {
+    document.querySelectorAll('.auth-tab').forEach((t, i) => {
+      t.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+    });
+    document.getElementById('loginForm').classList.toggle('active', tab === 'login');
+    document.getElementById('registerForm').classList.toggle('active', tab === 'register');
+  }
+
+  async function doLogin() {
+    const username = document.getElementById('loginUsername').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const errEl = document.getElementById('loginError');
+    if (!username || !password) { showErr(errEl, 'Compila tutti i campi'); return; }
+    try {
+      const res = await fetch(`${API}/login`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ username, password })
+      });
+      if (!res.ok) { const e = await res.json(); showErr(errEl, e.detail); return; }
+      setLoggedUser(username);
+      closeAuth();
+    } catch { showErr(errEl, 'Errore di connessione'); }
+  }
+
+  async function doRegister() {
+    const username = document.getElementById('regUsername').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const errEl = document.getElementById('regError');
+    const okEl = document.getElementById('regSuccess');
+    okEl.style.display = 'none';
+    if (!username || !password) { showErr(errEl, 'Compila tutti i campi'); return; }
+    if (password.length < 6) { showErr(errEl, 'Password troppo corta (min. 6 caratteri)'); return; }
+    try {
+      const res = await fetch(`${API}/register`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ username, password })
+      });
+      if (!res.ok) { const e = await res.json(); showErr(errEl, e.detail); return; }
+      errEl.style.display = 'none';
+      okEl.textContent = '✓ Account creato! Ora puoi accedere.';
+      okEl.style.display = 'block';
+      setTimeout(() => switchAuthTab('login'), 1500);
+    } catch { showErr(errEl, 'Errore di connessione'); }
+  }
+
+  async function doCartLogin() {
+    const username = document.getElementById('cartLoginUser').value.trim();
+    const password = document.getElementById('cartLoginPass').value;
+    const errEl = document.getElementById('cartLoginError');
+    if (!username || !password) { showErr(errEl, 'Compila username e password'); return; }
+    try {
+      const res = await fetch(`${API}/login`, {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ username, password })
+      });
+      if (!res.ok) { const e = await res.json(); showErr(errEl, e.detail); return; }
+      setLoggedUser(username);
+      setCheckoutMode('logged');
+    } catch { showErr(errEl, 'Errore di connessione'); }
+  }
+
+  function setLoggedUser(username) {
+    currentUser = { username };
+    document.getElementById('btnAuth').textContent = 'ESCI';
+    document.getElementById('btnAuth').onclick = doLogout;
+    document.getElementById('userIndicator').innerHTML = `<span class="user-pill">👤 ${username}</span>`;
+    // aggiorna sezione checkout
+    document.getElementById('loggedUserLabel').textContent = username;
+    document.getElementById('guestModeSection').style.display = 'none';
+    document.getElementById('loggedCheckoutSection').style.display = 'block';
+    checkoutMode = 'logged';
+  }
+
+  function doLogout() {
+    currentUser = null;
+    document.getElementById('btnAuth').textContent = 'ACCEDI';
+    document.getElementById('btnAuth').onclick = openAuth;
+    document.getElementById('userIndicator').innerHTML = '';
+    document.getElementById('guestModeSection').style.display = 'block';
+    document.getElementById('loggedCheckoutSection').style.display = 'none';
+    setCheckoutMode('guest');
+  }
+
+  function setCheckoutMode(mode) {
+    checkoutMode = mode;
+    document.getElementById('modeGuest').classList.toggle('active', mode === 'guest');
+    document.getElementById('modeUser').classList.toggle('active', mode === 'user');
+    document.getElementById('guestEmailSection').style.display = mode === 'guest' ? 'block' : 'none';
+    document.getElementById('cartLoginSection').style.display = mode === 'user' ? 'block' : 'none';
+  }
+
+  function showErr(el, msg) {
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  // ─── LOAD FILMS ───────────────────────────────────────
+  async function load() {
+    const container = document.getElementById('catalog');
+    try {
+      const [filmsRes, showsRes] = await Promise.all([
+        fetch(`${API}/films`),
+        fetch(`${API}/spettacoli`)
+      ]);
+      allFilms = await filmsRes.json();
+      if (showsRes.ok) spettacoli = await showsRes.json();
+
+      // Carica generi per i filtri
+      const genresRes = await fetch(`${API}/films/genres`);
+      if (genresRes.ok) {
+        const genres = await genresRes.json();
+        const bar = document.getElementById('filtersBar');
+        genres.forEach(g => {
+          const btn = document.createElement('button');
+          btn.className = 'filter-btn';
+          btn.dataset.genre = g;
+          btn.textContent = g;
+          btn.onclick = () => filterByGenre(g, btn);
+          // Inserisci dopo il bottone "Tutti"
+          const allBtn = bar.querySelector('[data-genre="all"]');
+          allBtn.parentNode.insertBefore(btn, allBtn.nextSibling);
+        });
+      }
+
+      renderCatalog(allFilms);
+    } catch (err) {
+      console.error(err);
+      container.innerHTML = '<p class="empty-catalog">Impossibile caricare i film. Assicurati che il backend sia attivo.</p>';
+    }
+  }
+
+  function getShowsByFilm() {
+    const map = {};
+    Object.entries(spettacoli).forEach(([sid, s]) => {
+      const fid = String(s.filmId);
+      if (!map[fid]) map[fid] = [];
+      map[fid].push({ spettacoloId: sid, ...s });
+    });
+    return map;
+  }
+
+  function renderCatalog(filmsData) {
+    const container = document.getElementById('catalog');
+    container.innerHTML = '';
+    const showsByFilm = getShowsByFilm();
+    const entries = Object.entries(filmsData);
+
+    if (entries.length === 0) {
+      container.innerHTML = '<p class="empty-catalog">Nessun film trovato con i filtri selezionati.</p>';
+      return;
+    }
+
+    entries.forEach(([filmId, f]) => {
+      const shows = showsByFilm[filmId] || [];
+      const rating = f.rating != null ? f.rating : null;
+
+      const orariButtons = shows.length
+        ? shows.map(sh => {
+            const ora = formatOrario(sh.orario);
+            return `<button class="btn-time" onclick="event.stopPropagation(); openBooking('${filmId}','${escStr(f.Titolo)}','${ora}','Sala ${sh.salaId}','${sh.spettacoloId}','${sh.salaId}')">${ora}</button>`;
+          }).join('')
+        : `<span style="font-size:0.65rem; color:var(--text-dim);">Non in programmazione</span>`;
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.onclick = () => openFilmDetail(filmId);
+      card.innerHTML = `
+        <div class="card-img-container">
+          <img src="${f.Immagine || ''}" alt="${f.Titolo}" onerror="this.style.display='none'">
+          ${rating != null ? `<div class="rating-badge">${rating.toFixed(1)}</div>` : ''}
+          <div class="genre-badge">${f.Genere}</div>
+        </div>
+        <div class="card-content">
+          <h3>${f.Titolo}</h3>
+          <div class="stars">${starsHTML(rating)}</div>
+          <p class="card-meta">🎬 ${f.Regista} &nbsp;|&nbsp; ⏱ ${f.Durata} min</p>
+          <p class="plot">${f.Descrizione || ''}</p>
+          <div style="display:flex; gap:7px; margin-top:auto; flex-wrap:wrap;">${orariButtons}</div>
+          <button class="btn-detail" onclick="event.stopPropagation(); openFilmDetail('${filmId}')">DETTAGLI →</button>
+        </div>`;
+      container.appendChild(card);
+    });
+  }
+
+  function filterByGenre(genre, btnEl) {
+    currentGenreFilter = genre;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    const minRating = parseFloat(document.getElementById('ratingFilter').value) || 0;
+
+    const filtered = {};
+    Object.entries(allFilms).forEach(([id, f]) => {
+      if (currentGenreFilter !== 'all' && f.Genere !== currentGenreFilter) return;
+      if (minRating > 0 && (f.rating == null || f.rating < minRating)) return;
+      if (search && !f.Titolo.toLowerCase().includes(search) && !(f.Regista || '').toLowerCase().includes(search)) return;
+      filtered[id] = f;
+    });
+
+    renderCatalog(filtered);
+  }
+
+  // ─── FILM DETAIL ──────────────────────────────────────
+  function openFilmDetail(filmId) {
+    const f = allFilms[filmId];
+    if (!f) return;
+
+    document.getElementById('detailImg').src = f.Immagine || '';
+    document.getElementById('detailTitle').textContent = f.Titolo;
+    document.getElementById('detailStars').innerHTML = starsHTML(f.rating);
+    document.getElementById('detailRatingBadge').textContent = f.rating != null ? f.rating.toFixed(1) + ' / 10' : '';
+
+    document.getElementById('detailMeta').innerHTML = `
+      <span>🎬 ${f.Regista}</span>
+      <span>🎭 ${f.Genere}</span>
+      <span>⏱ ${f.Durata} min</span>`;
+
+    document.getElementById('detailDesc').textContent = f.Descrizione || 'Nessuna descrizione disponibile.';
+
+    const showsByFilm = getShowsByFilm();
+    const shows = showsByFilm[filmId] || [];
+    const showsEl = document.getElementById('detailShows');
+
+    if (shows.length === 0) {
+      showsEl.innerHTML = '<p style="font-size:0.75rem; color:var(--text-dim);">Nessuno spettacolo in programmazione.</p>';
+    } else {
+      showsEl.innerHTML = shows.map(sh => {
+        const ora = formatOrario(sh.orario);
+        return `<div class="show-row">
+          <div class="show-info">
+            <div class="show-time">${ora}</div>
+            <div class="show-sala">Sala ${sh.salaId}</div>
+          </div>
+          <button class="btn-time" style="max-width:160px;" onclick="closeFilmDetail(); openBooking('${filmId}','${escStr(f.Titolo)}','${ora}','Sala ${sh.salaId}','${sh.spettacoloId}','${sh.salaId}')">PRENOTA →</button>
+        </div>`;
+      }).join('');
+    }
+
+    document.getElementById('filmDetailModal').classList.add('open');
+  }
+
+  function closeFilmDetail() {
+    document.getElementById('filmDetailModal').classList.remove('open');
+  }
+
+  // ─── BOOKING ──────────────────────────────────────────
+  const rowPrices = {
+    A: { price: 15.00, color: 'var(--vip)' },
+    B: { price: 10.00, color: 'var(--std)' },
+    C: { price: 10.00, color: 'var(--std)' },
+    D: { price: 7.50, color: 'var(--eco)' },
+    E: { price: 7.50, color: 'var(--eco)' }
+  };
+  const defaultRow = { price: 10.00, color: 'var(--std)' };
+
+  async function openBooking(filmId, title, time, sala, spettacoloId, salaId) {
+    tempBooking = { filmId, spettacoloId, salaId, title, time, sala };
+    tempSeats = [];
+    updateSelectedSeatsUI();
+
+    document.getElementById('mTitle').innerText = title;
+    document.getElementById('mSala').innerText = sala + '  ·  ' + time;
+
+    try {
+      const res = await fetch(`${API}/sala/${salaId}/posti`);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      const posti = Object.values(data);
+      posti.sort((a, b) => a.Fila.localeCompare(b.Fila) || a.numeroPosto - b.numeroPosto);
+
+      // Raggruppa per fila
+      const rows = {};
+      posti.forEach(p => {
+        if (!rows[p.Fila]) rows[p.Fila] = [];
+        rows[p.Fila].push(p);
+      });
+
+      const grid = document.getElementById('seatsGrid');
+      grid.innerHTML = '';
+
+      Object.entries(rows).forEach(([fila, seats]) => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'seat-row';
+
+        const label = document.createElement('div');
+        label.className = 'row-label';
+        label.textContent = fila;
+        rowDiv.appendChild(label);
+
+        const seatsDiv = document.createElement('div');
+        seatsDiv.className = 'seats-in-row';
+
+        seats.forEach(posto => {
+          const seatCode = posto.Fila + posto.numeroPosto;
+          const isOcc = posto.stato === 1;
+          const rStyle = rowPrices[posto.Fila] || defaultRow;
+
+          const s = document.createElement('div');
+          s.className = `seat ${isOcc ? 'occupied' : ''}`;
+          s.style.background = isOcc ? '#1a1a1a' : rStyle.color;
+          s.title = `${seatCode} — Fila ${posto.Fila}, Posto ${posto.numeroPosto}${isOcc ? ' (Occupato)' : ' — €' + rStyle.price.toFixed(2)}`;
+          s.innerHTML = `<div class="seat-number-label">${posto.numeroPosto}</div>`;
+
+          if (!isOcc) {
+            s.onclick = () => toggleSeat(s, seatCode, rStyle.price, rStyle.color);
+          }
+          seatsDiv.appendChild(s);
+        });
+
+        rowDiv.appendChild(seatsDiv);
+        grid.appendChild(rowDiv);
+      });
+
+      document.getElementById('bookingModal').classList.add('open');
+    } catch (err) {
+      alert('Errore nel caricamento dei posti.');
+    }
+  }
+
+  function toggleSeat(el, seatCode, price, color) {
+    const idx = tempSeats.findIndex(s => s.code === seatCode);
+    if (idx === -1) {
+      // Seleziona
+      el.classList.add('selected');
+      el.style.background = '#fff';
+      tempSeats.push({ code: seatCode, price, color });
+    } else {
+      // Deseleziona
+      el.classList.remove('selected');
+      el.style.background = color;
+      tempSeats.splice(idx, 1);
+    }
+    updateSelectedSeatsUI();
+  }
+
+  function updateSelectedSeatsUI() {
+    const total = tempSeats.reduce((s, p) => s + p.price, 0);
+    document.getElementById('sCount').textContent = tempSeats.length;
+    document.getElementById('sPrice').textContent = '€ ' + total.toFixed(2);
+
+    const listEl = document.getElementById('selectedSeatsList');
+    if (tempSeats.length === 0) {
+      listEl.innerHTML = '<p style="font-size:0.7rem; color:var(--text-dim);">Clicca sui posti per selezionarli</p>';
+    } else {
+      listEl.innerHTML = tempSeats.map(s =>
+        `<span class="selected-seat-chip">${s.code} (€${s.price.toFixed(2)})</span>`
+      ).join('');
+    }
+  }
+
+  function addToCart() {
+    if (tempSeats.length === 0) return alert('Seleziona almeno un posto!');
+    const duplicates = tempSeats.filter(s =>
+      cart.find(c => c.spettacoloId === tempBooking.spettacoloId && c.seat === s.code)
+    );
+    if (duplicates.length > 0) return alert(`Questi posti sono già nel carrello: ${duplicates.map(d => d.code).join(', ')}`);
+
+    tempSeats.forEach(s => {
+      cart.push({
+        ...tempBooking,
+        seat: s.code,
+        price: s.price
+      });
+    });
+
+    updateCart();
+    closeBookingModal();
+    toggleCart(true);
+    startTimer();
+  }
+
+  function closeBookingModal() {
+    document.getElementById('bookingModal').classList.remove('open');
+    tempSeats = [];
+  }
+
+  // ─── CART ─────────────────────────────────────────────
+  function startTimer() {
+    if (timerInt) clearInterval(timerInt);
+    document.getElementById('cartTimer').style.display = 'block';
+    let time = 300;
+    timerInt = setInterval(() => {
+      time--;
+      const m = Math.floor(time / 60), s = time % 60;
+      document.getElementById('timeVal').innerText = `${m}:${s < 10 ? '0' + s : s}`;
+      if (time <= 0) {
+        clearInterval(timerInt);
+        cart = [];
+        updateCart();
+        toggleCart(false);
+        alert('Tempo scaduto! Il carrello è stato svuotato.');
+      }
+    }, 1000);
+  }
+
+  function updateCart() {
+    const list = document.getElementById('cartList');
+    document.getElementById('cartCount').innerText = cart.length;
+
+    if (cart.length === 0) {
+      list.innerHTML = `<p style="text-align:center; color:var(--text-dim); margin-top:20px; font-size:0.8rem;">Il tuo carrello è vuoto.<br><br><button onclick="toggleCart(false)" style="color:var(--gold); background:none; border:none; text-decoration:underline; cursor:pointer;">Sfoglia i film</button></p>`;
+    } else {
+      list.innerHTML = cart.map((i, idx) => `
+        <div style="background:var(--surface2); padding:12px; margin-bottom:10px; border-radius:8px; border-left: 3px solid var(--aurora); position:relative;">
+          <b style="color:var(--gold); font-size: 0.8rem;">${i.title}</b><br>
+          <small style="color:var(--text-dim);">${i.sala} · Posto <b style="color:white;">${i.seat}</b> · Ore ${i.time}</small>
+          <div style="color:var(--accent); font-weight:bold; font-size:0.85rem;">€ ${i.price.toFixed(2)}</div>
+          <button onclick="removeFromCart(${idx})" style="position:absolute; top:8px; right:8px; background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:1rem;" title="Rimuovi">✕</button>
+        </div>`).join('');
+    }
+
+    const total = cart.reduce((s, i) => s + i.price, 0);
+    document.getElementById('cartTotal').innerText = total.toFixed(2);
+
+    // Mostra/nascondi checkout in base allo stato login
+    if (currentUser) {
+      document.getElementById('guestModeSection').style.display = 'none';
+      document.getElementById('loggedCheckoutSection').style.display = 'block';
+    }
+  }
+
+  function removeFromCart(index) {
+    cart.splice(index, 1);
+    if (cart.length === 0) {
+      clearInterval(timerInt);
+      document.getElementById('cartTimer').style.display = 'none';
+    }
+    updateCart();
+  }
+
+  async function finishCheckout(status) {
+    if (cart.length === 0) return alert('Il carrello è vuoto!');
+
+    let userId = -1;       // intero da passare al backend
+    let displayName = '';  // solo per visualizzare sul biglietto
+
+    if (currentUser) {
+      displayName = currentUser.username;
+      userId = currentUser.username;
+    } else {
+      if (checkoutMode === 'user') {
+        return alert('Effettua il login prima di procedere.');
+      }
+      const email = document.getElementById('userEmail').value.trim();
+      if (!email || !email.includes('@')) return alert("Inserisci un'email valida!");
+      displayName = email;
+      userId = -1; // ospite → -1 nel DB; in produzione si manderebbe email di conferma
+    }
+
+    // Raggruppa per spettacolo
+    const byShow = {};
+    cart.forEach(item => {
+      if (!byShow[item.spettacoloId]) byShow[item.spettacoloId] = [];
+      byShow[item.spettacoloId].push(item);
+    });
+
+    for (const [spettacoloId, items] of Object.entries(byShow)) {
+      const posti = items.map(i => i.seat).join(',');
+      const costo = Math.round(items.reduce((s, i) => s + i.price, 0));
+      const code = 'AUR-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase();
+      try {
+        const res = await fetch(`${API}/prenota`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            SpettacoloId: parseInt(spettacoloId),
+            salaId: parseInt(items[0].salaId),
+            SpecialCode: code,
+            costoTotale: costo,
+            numeroPostiPrenotati: items.length,
+            Posti: posti,
+            User: userId
+          })
+        });
+        if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Errore'); }
+      } catch (err) { alert(`ERRORE: ${err.message}`); return; }
+    }
+
+    clearInterval(timerInt);
+    document.getElementById('mainApp').style.display = 'none';
+    document.getElementById('cartSidebar').classList.remove('open');
+    document.getElementById('ticketResult').style.display = 'block';
+
+    document.getElementById('ticketStatus').innerText = 'STATO: ' + status;
+    document.getElementById('ticketStatus').style.color = (status === 'PAGATO') ? '#27ae60' : '#f39c12';
+
+    document.getElementById('ticketInfo').innerHTML = `
+      <p><b>DATA:</b> ${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}</p>
+      <p><b>${currentUser ? 'UTENTE' : 'EMAIL'}:</b> ${displayName}</p>
+      <hr style="margin:10px 0; border:0; border-top:1px dashed #ccc;">
+      ${cart.map(i => `<p>• <b>${i.title}</b><br><small>${i.sala} | Posto: <b>${i.seat}</b> | Ore: ${i.time}</small></p>`).join('<br>')}
+      <h3 style="margin-top:15px; text-align:right;">TOTALE: € ${document.getElementById('cartTotal').innerText}</h3>`;
+
+    const qrData = encodeURIComponent(displayName + '_SECURE_' + Date.now());
+    document.getElementById('qrContainer').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${qrData}" alt="QR Code Biglietto" style="margin:20px auto; display:block; border:1px solid #ddd; padding:10px;">`;
+    cart = [];
+  }
+
+  // ─── UTILS ────────────────────────────────────────────
+  function formatOrario(orario) {
+    try { return new Date(orario).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); }
+    catch { return orario; }
+  }
+
+  function escStr(s) {
+    return (s || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  }
+
+  function toggleCart(open) {
+    document.getElementById('cartSidebar').classList.toggle('open', open);
+  }
+
+  // Click fuori dai modali per chiuderli
+  document.getElementById('filmDetailModal').addEventListener('click', function(e) {
+    if (e.target === this) closeFilmDetail();
+  });
+  document.getElementById('bookingModal').addEventListener('click', function(e) {
+    if (e.target === this) closeBookingModal();
+  });
+  document.getElementById('authModal').addEventListener('click', function(e) {
+    if (e.target === this) closeAuth();
+  });
+
+  load();
+</script>
+</body>
+</html>
