@@ -12,6 +12,8 @@ import os
 
 app=FastAPI()
 
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "moviedb.sqlite")
+
 '''Configurazione CORS per permettere al frontend di comunicare con il backend'''
 app.add_middleware(
     CORSMiddleware,
@@ -22,12 +24,12 @@ app.add_middleware(
 
 '''Funzioni per interagire con il database'''
 def connect_db():
-    conn=sqlite3.connect("moviedb.sqlite")
+    conn=sqlite3.connect(DB_PATH)
     conn.row_factory=sqlite3.Row
     cursor=conn.cursor()
 
 def get_films_db():
-    conn=sqlite3.connect("moviedb.sqlite")
+    conn=sqlite3.connect(DB_PATH)
     cursor=conn.cursor()
     cursor.execute("SELECT * FROM film")
     films=cursor.fetchall()
@@ -35,7 +37,7 @@ def get_films_db():
     return films
 
 def get_film_by_genre(genre:str):
-    conn=sqlite3.connect("moviedb.sqlite")
+    conn=sqlite3.connect(DB_PATH)
     cursor=conn.cursor()
     cursor.execute("SELECT * FROM film WHERE Genere=?", (genre.capitalize(),))
     films=cursor.fetchall()
@@ -43,7 +45,7 @@ def get_film_by_genre(genre:str):
     return films
 
 def get_film_by_id(id:int):
-    conn=sqlite3.connect("moviedb.sqlite")
+    conn=sqlite3.connect(DB_PATH)
     cursor=conn.cursor()
     cursor.execute("SELECT * FROM film WHERE Id=?", (id,))
     film=cursor.fetchone()
@@ -51,7 +53,7 @@ def get_film_by_id(id:int):
     return film
 
 def get_film_by_director(director:str):
-    conn=sqlite3.connect("moviedb.sqlite")
+    conn=sqlite3.connect(DB_PATH)
     cursor=conn.cursor()
     cursor.execute("SELECT * FROM film WHERE Regista LIKE ?", (director,))
     films=cursor.fetchall()
@@ -59,7 +61,7 @@ def get_film_by_director(director:str):
     return films
 
 def get_all_genres():
-    conn=sqlite3.connect("moviedb.sqlite")
+    conn=sqlite3.connect(DB_PATH)
     cursor=conn.cursor()
     cursor.execute("SELECT DISTINCT Genere FROM film")
     genres=cursor.fetchall()
@@ -93,7 +95,7 @@ def to_dict_sala(sala):
 
 '''Funzione per ottenere i dettagli di una sala specifica'''
 def get_watchroom_by_id(id:int):
-    conn=sqlite3.connect("moviedb.sqlite")
+    conn=sqlite3.connect(DB_PATH)
     cursor=conn.cursor()
     cursor.execute("SELECT * FROM sala WHERE Idsala=?", (id,))
     sala=cursor.fetchone()
@@ -103,7 +105,7 @@ def get_watchroom_by_id(id:int):
 
 '''Funzione per ottenere tutti gli spettacoli disponibili'''
 def get_all_shows(id:int):
-    conn=sqlite3.connect("moviedb.sqlite")
+    conn=sqlite3.connect(DB_PATH)
     cursor=conn.cursor()
     cursor.execute("SELECT * FROM spettacolo")
     spettacoli=cursor.fetchall()
@@ -138,7 +140,7 @@ def to_dict_seats(posti):
 '''Funzione per ottenere i posti di una sala specifica'''
 def get_seats_by_watchroom(id:int):
     seats=[]
-    conn=sqlite3.connect("moviedb.sqlite")
+    conn=sqlite3.connect(DB_PATH)
     cursor=conn.cursor()
     cursor.execute("SELECT * FROM posto WHERE salaId=?", (id,))
     posti=cursor.fetchall()
@@ -158,7 +160,7 @@ def search_seats_in_list(filaNumero:str, sala_id:int):
 
 '''Funzione per aggiornare il numero di posti disponibili in una sala dopo una prenotazione'''
 def update_watchroom_seats(sala_id:int, posti_rimanenti:int):
-    conn=sqlite3.connect("moviedb.sqlite")
+    conn=sqlite3.connect(DB_PATH)
     cursor=conn.cursor()
     cursor.execute("UPDATE sala SET postiDisponibili=? WHERE Idsala=?", (posti_rimanenti, sala_id))
     conn.commit()
@@ -166,7 +168,7 @@ def update_watchroom_seats(sala_id:int, posti_rimanenti:int):
 
 '''Funzione per bloccare un posto specifico dopo una prenotazione'''
 def block_seat(posto: Posto):
-    conn=sqlite3.connect("moviedb.sqlite")
+    conn=sqlite3.connect(DB_PATH)
     cursor=conn.cursor()
     cursor.execute("UPDATE posto SET stato=1 WHERE Fila=? AND numeroPosto=? AND salaId=?", 
                    (posto.Fila, posto.numeroPosto, posto.Sala))
@@ -175,7 +177,7 @@ def block_seat(posto: Posto):
 
 '''Funzione per aggiungere una prenotazione al database'''
 def add_prenotazione(spettacolo_id:int, special_code:str, costo_totale:int, numero_posti:int, posti:str,user:str):
-    conn=sqlite3.connect("moviedb.sqlite")
+    conn=sqlite3.connect(DB_PATH)
     cursor=conn.cursor()
     cursor.execute("SELECT id FROM user WHERE username=?", (user,))
     user_t=cursor.fetchone()
@@ -277,7 +279,7 @@ async def prenota(prenotazione: dict = Body(...)):
 '''Endpoint per registrare un nuovo utente'''
 @app.post("/register")
 async def register(user: dict = Body(...)):
-    conn=sqlite3.connect("moviedb.sqlite")
+    conn=sqlite3.connect(DB_PATH)
     cursor=conn.cursor()
     cursor.execute("SELECT * FROM user WHERE username=?", (user["username"],))
     existing_user=cursor.fetchone()
@@ -293,7 +295,7 @@ async def register(user: dict = Body(...)):
 '''Endpoint per effettuare il login di un utente'''
 @app.post("/login")
 async def login(user: dict = Body(...)):
-    conn=sqlite3.connect("moviedb.sqlite")
+    conn=sqlite3.connect(DB_PATH)
     cursor=conn.cursor()
     cursor.execute("SELECT * FROM user WHERE username=?", (user["username"],))
     existing_user=cursor.fetchone()
