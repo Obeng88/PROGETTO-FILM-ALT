@@ -8,6 +8,7 @@ from MovieClasses import Posto,Spettacolo,Sala
 import sqlite3
 from fastapi.params import Body
 import bcrypt
+import os
 
 app=FastAPI()
 
@@ -304,3 +305,9 @@ async def login(user: dict = Body(...)):
         return {"message": "Login avvenuto con successo!"}
     else:
         raise HTTPException(status_code=400, detail="Password errata")
+    
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 7001))
+    uvicorn.run("main_class:app", host="0.0.0.0", port=port)
